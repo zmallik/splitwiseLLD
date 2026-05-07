@@ -213,6 +213,27 @@ public final class SplitwiseService {
         applyNetPositions(groupId, netByUser);
     }
 
+    /*
+     * Converts per-user net positions for one expense into pairwise balances.
+     *
+     * net = amountPaid - amountOwed
+     *
+     * Positive net means the user should receive money.
+     * Negative net means the user should pay money.
+     *
+     * Example:
+     * Alice paid 2500, Bob paid 1500, total expense is 4000 split equally
+     * across Alice, Bob, Charlie, and Diana.
+     *
+     * Alice   = 2500 - 1000 = +1500
+     * Bob     = 1500 - 1000 = +500
+     * Charlie =    0 - 1000 = -1000
+     * Diana   =    0 - 1000 = -1000
+     *
+     * This method separates debtors from creditors and repeatedly matches the
+     * largest available debt/credit until all net positions are settled, then
+     * records each match with updateBalance(groupId, debtor, creditor, amount).
+     */
     private void applyNetPositions(String groupId, Map<String, BigDecimal> netByUser) {
         PriorityQueue<Map.Entry<String, BigDecimal>> debtors = new PriorityQueue<>(Comparator.comparing(Map.Entry::getValue));
         PriorityQueue<Map.Entry<String, BigDecimal>> creditors = new PriorityQueue<>((a, b) -> b.getValue().compareTo(a.getValue()));
